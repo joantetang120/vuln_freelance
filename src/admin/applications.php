@@ -13,7 +13,7 @@ $sql = "SELECT a.id, a.job_id, a.user_id, a.cv_path, u.username AS applicant, j.
 $result = $conn->query($sql);
 
 $applications = [];
-while ($row = $result->fetch_assoc()) {
+while ($row = $result->fetch()) {
     $applications[] = $row;
 }
 

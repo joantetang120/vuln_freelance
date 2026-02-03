@@ -5,8 +5,10 @@ RUN apt-get update && \
     apt-get install -y netcat-traditional && \
     rm -rf /var/lib/apt/lists/*
 
-# 2️⃣ Enable MySQL extension
-RUN docker-php-ext-install mysqli
+# 2️⃣ Enable PostgreSQL extension
+RUN apt-get update && apt-get install -y libpq-dev && \
+    docker-php-ext-install pdo pdo_pgsql pgsql && \
+    rm -rf /var/lib/apt/lists/*
 
 # 3️⃣ Enable Apache modules
 RUN a2enmod rewrite
@@ -43,6 +45,10 @@ RUN echo "<Directory /var/www/html/public/uploads>\n\
 # 🔟 Add wait-for-db script
 COPY wait-for-db.sh /usr/local/bin/wait-for-db.sh
 RUN chmod +x /usr/local/bin/wait-for-db.sh
+
+# 🔟 Create flag file in home directory
+RUN echo "spider{Hel10__5yst3m_Flag_1001}" > /home/flag.txt && \
+    chmod 644 /home/flag.txt
 
 EXPOSE 80
 CMD ["apache2-foreground"]

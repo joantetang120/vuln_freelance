@@ -12,13 +12,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($email === 'spider100@gmail.com') {
         // Use bcrypt for this specific user
-        $stmt = $conn->prepare("SELECT * FROM users WHERE email = ? AND confirmed = 1");
-        $stmt->bind_param("s", $email);
-        $stmt->execute();
-        $result = $stmt->get_result();
+        $stmt = $conn->prepare("SELECT * FROM users WHERE email = :email AND confirmed = 1");
+        $stmt->execute(['email' => $email]);
+        $user = $stmt->fetch();
         
-        if ($result && $result->num_rows > 0) {
-            $user = $result->fetch_assoc();
+        if ($user) {
             if (password_verify($inputPassword, $user['password'])) {
                 // Auth success
                 $_SESSION['user_id'] = $user['id'];
@@ -39,10 +37,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Fallback: use MD5 (not recommended)
         $password = md5($inputPassword);
         $sql = "SELECT * FROM users WHERE email='$email' AND password='$password' AND confirmed = 1";
-        $result = $conn->query($sql);
+        $stmt = $conn->query($sql);
+        $user = $stmt->fetch();
 
-        if ($result && $result->num_rows > 0) {
-            $user = $result->fetch_assoc();
+        if ($user) {
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['role'] = $user['role'];
             $_SESSION['username'] = $user['username'];

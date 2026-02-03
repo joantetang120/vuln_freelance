@@ -15,7 +15,7 @@ $sql = "SELECT j.id, j.title, j.description, u.username
         WHERE j.title LIKE '%$search%' ORDER BY j.id DESC";
 $result = $conn->query($sql);
 
-while ($row = $result->fetch_assoc()) {
+while ($row = $result->fetch()) {
     $jobs[] = $row;
 }
 

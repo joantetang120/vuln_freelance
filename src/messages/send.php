@@ -21,12 +21,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // VULNERABLE: no escaping or sanitization (Stored XSS possible)
     $sql = "INSERT INTO messages (sender_id, receiver_id, subject, body) 
             VALUES ('$sender', '$receiver', '$subject', '$body')";
-    if ($conn->query($sql)) {
+    try {
+        $conn->exec($sql);
         $message = "Message sent!";
-    } else {
-        $message = "Error: " . $conn->error;
+    } catch (PDOException $e) {
+        $message = "Error: " . $e->getMessage();
     }
 }
 
-$users = $conn->query("SELECT id, username, role FROM users")->fetch_all(MYSQLI_ASSOC);
+$users = $conn->query("SELECT id, username, role FROM users")->fetchAll();
 include __DIR__ . '/../../templates/messages/send.php';

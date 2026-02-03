@@ -8,7 +8,7 @@ if (!isset($_SESSION['user_id'])) {
 
 // Fetch current user data to populate the template
 $userId = $_SESSION['user_id'];
-$user = $conn->query("SELECT * FROM users WHERE id='$userId'")->fetch_assoc();
+$user = $conn->query("SELECT * FROM users WHERE id='$userId'")->fetch();
 $message = ""; // left for compatibility (not used in fetch version)
 
 include __DIR__ . '/../../templates/users/profile.php';

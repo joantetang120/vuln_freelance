@@ -14,7 +14,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $userId = $_SESSION['user_id'];
-$user   = $conn->query("SELECT * FROM users WHERE id='$userId'")->fetch_assoc();
+$user   = $conn->query("SELECT * FROM users WHERE id='$userId'")->fetch();
 
 $username = $_POST['username'] ?? $user['username'];
 $password = !empty($_POST['password']) ? md5($_POST['password']) : $user['password'];
@@ -51,13 +51,14 @@ if (isset($_POST['role'])) {
 // Update user
 $sql = "UPDATE users SET username='$username', password='$password', profile_pic='$profile_pic_path', role='$role' WHERE id='$userId'";
 
-if ($conn->query($sql)) {
+try {
+    $conn->exec($sql);
     $_SESSION['role'] = $role;
     echo json_encode([
         "message" => "Profile updated",
         "file"    => basename($profile_pic_path) // <-- just the file name
     ]);
-} else {
-    echo json_encode(["message" => "Error: " . $conn->error]);
+} catch (PDOException $e) {
+    echo json_encode(["message" => "Error: " . $e->getMessage()]);
 }
 

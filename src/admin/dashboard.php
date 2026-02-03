@@ -5,5 +5,5 @@ if ($_SESSION['role'] !== 'admin') {
     die("Access denied");
 }
 
-$users = $conn->query("SELECT id, username,confirmed, role FROM users")->fetch_all(MYSQLI_ASSOC);
+$users = $conn->query("SELECT id, username,confirmed, role FROM users")->fetchAll();
 include __DIR__ . '/../../templates/admin/dashboard.php';

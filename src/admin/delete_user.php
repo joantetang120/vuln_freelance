@@ -14,12 +14,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['user_id']) ) {
         die("You cannot delete your own account.");
     }
 
-    $stmt = $conn->prepare("DELETE FROM users WHERE id = ?");
-    $stmt->bind_param("i", $userId);
+    $stmt = $conn->prepare("DELETE FROM users WHERE id = :id");
 
-    if ($stmt->execute()) {
+    try {
+        $stmt->execute(['id' => $userId]);
         header("Location: index.php?page=admin&message=User+deleted");
-    } else {
-        die("Failed to delete user: " . $conn->error);
+    } catch (PDOException $e) {
+        die("Failed to delete user: " . $e->getMessage());
     }
 }

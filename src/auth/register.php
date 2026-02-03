@@ -17,10 +17,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Direct query, no prepared statements (SQLi risk later)
     $sql = "INSERT INTO users (username, password, email, role) VALUES ('$username', '$hashed', '$email', '$role')";
-    if ($conn->query($sql) === TRUE) {
+    try {
+        $conn->exec($sql);
         $message = "Account created successfully. <a href='index.php?page=login'>Login</a>";
-    } else {
-        $message = "Error: " . $conn->error;
+    } catch (PDOException $e) {
+        $message = "Error: " . $e->getMessage();
     }
 }
 

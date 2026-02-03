@@ -20,10 +20,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Direct query, no prepared statement (safe from our perspective intentionally)
     $sql = "INSERT INTO jobs (title, description, user_id) VALUES ('$title', '$description', '$user_id')";
-    if ($conn->query($sql) === TRUE) {
+    try {
+        $conn->exec($sql);
         $message = "Job created successfully!";
-    } else {
-        $message = "Error: " . $conn->error;
+    } catch (PDOException $e) {
+        $message = "Error: " . $e->getMessage();
     }
 }
 

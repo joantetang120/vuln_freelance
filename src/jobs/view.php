@@ -11,7 +11,7 @@ if (!isset($_GET['id'])) {
 
 $job_id = $_GET['id'];
 $sql = "SELECT j.*, u.username FROM jobs j JOIN users u ON j.user_id = u.id WHERE j.id = $job_id";
-$job = $conn->query($sql)->fetch_assoc();
+$job = $conn->query($sql)->fetch();
 
 $message = "";
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -41,13 +41,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $sql = "INSERT INTO applications (job_id, user_id, cv_path) 
                     VALUES ('$job_id', '$user_id', '$newName')";
-            
-        }
-        if ($conn->query($sql)) {
-            // Show success + uploaded file name
-            $message = "Applied with CV successfully! Uploaded file: " . htmlspecialchars($newName);
-        } else {
-            $message = "Error: " . $conn->error;
+            try {
+                $conn->exec($sql);
+                // Show success + uploaded file name
+                $message = "Applied with CV successfully! Uploaded file: " . htmlspecialchars($newName);
+            } catch (PDOException $e) {
+                $message = "Error: " . $e->getMessage();
+            }
         }
     }
 }

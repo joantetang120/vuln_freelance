@@ -18,7 +18,7 @@ $sql = "SELECT m.id, m.subject, m.body, m.created_at, u.username AS receiver
 $result = $conn->query($sql);
 
 $messages = [];
-while ($row = $result->fetch_assoc()) {
+while ($row = $result->fetch()) {
     $messages[] = $row;
 }
 

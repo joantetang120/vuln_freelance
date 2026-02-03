@@ -5,9 +5,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['user_id'])) {
     $user_id = (int)$_POST['user_id'];
 
     // Mise à jour : confirmé + rôle = admin
-    $stmt = $conn->prepare("UPDATE users SET confirmed = 1 WHERE id = ?");
-    $stmt->bind_param("i", $user_id);
-    $stmt->execute();
+    $stmt = $conn->prepare("UPDATE users SET confirmed = 1 WHERE id = :id");
+    $stmt->execute(['id' => $user_id]);
 }
 
 // Redirection vers la page admin
